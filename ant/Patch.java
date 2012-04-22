@@ -11,6 +11,7 @@ import java.awt.Point;
 import java.util.HashMap;
 import scala.concurrent.stm.Ref;
 import scala.concurrent.stm.japi.STM;
+import scala.concurrent.stm.japi.STM.Transformer;
 
 /**
  *
@@ -125,7 +126,18 @@ public class Patch extends UntypedActor {
             final int amount = eat.food;
             if(amount <= food.get())
             {
-                STM.increment(food, -amount);
+                Integer newFood = STM.getAndTransform(food, new Transformer<Integer>()
+                {
+                    @Override
+                    public Integer apply(Integer a) {
+                        if(a >= amount)
+                        {
+                            a -= amount;
+                        }
+                        
+                        return a;
+                    }
+                });
                 eat.ate = true;
                 getSender().tell(eat);
             }
