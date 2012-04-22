@@ -6,10 +6,11 @@ package ant;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import akka.transactor.*;
+import akka.transactor.Coordinated;
 import java.awt.Point;
 import java.util.HashMap;
 import scala.concurrent.stm.Ref;
+import scala.concurrent.stm.TMap;
 import scala.concurrent.stm.japi.STM;
 import scala.concurrent.stm.japi.STM.Transformer;
 
@@ -43,15 +44,14 @@ public class Patch extends UntypedActor {
      * Pretty sure I just hosed myself due to the boxing/
      * unboxing that will take place with the key value.
      */
-    HashMap<Integer, ActorRef> ants;
+    final TMap.View<Integer, ActorRef> ants;
     HashMap<Integer, ActorRef> antsCopy;
     
     public Patch(int x, int y)
     {
         this.x = x;
         this.y = y;
-        ants = new HashMap<>();
-        antsCopy = ants;
+        ants = STM.newTMap();
         food.set(World.foodRandom.nextInt(MAX_FOOD));
         if(food.get() > 10)
             World.foodPatches.insert(this.x, this.y, this.getSelf());
@@ -158,7 +158,7 @@ public class Patch extends UntypedActor {
         }
         if(o instanceof Tick)
         {
-            antsCopy = new HashMap<>(ants);
+            //antsCopy = new HashMap<>(ants);
             return;
         }
         throw new UnsupportedOperationException("Not supported yet.");
