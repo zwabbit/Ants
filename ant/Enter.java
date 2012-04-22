@@ -10,5 +10,6 @@ package ant;
  */
 public class Enter {
     public int id;
-    public Ant ant = null;
+    public int startX, startY, endX, endY;
+    public boolean relayed = false;
 }

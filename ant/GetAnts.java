@@ -4,6 +4,7 @@
  */
 package ant;
 
+import akka.actor.ActorRef;
 import java.util.HashMap;
 
 /**
@@ -11,5 +12,5 @@ import java.util.HashMap;
  * @author Z98
  */
 public class GetAnts {
-    public HashMap<Integer, Ant> ants = null;
+    public HashMap<Integer, ActorRef> ants = null;
 }

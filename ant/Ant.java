@@ -14,6 +14,8 @@ public class Ant extends UntypedActor {
     public int id;
     boolean alive = true;
     int energy = 0;
+    
+    public static int FOOD_NEED = 10;
 
     @Override
     public void onReceive(Object o) throws Exception {
@@ -21,7 +23,7 @@ public class Ant extends UntypedActor {
         {
             Eat eat = (Eat)o;
             if(eat.ate == true)
-                energy += 10;
+                energy += FOOD_NEED;
         }
         throw new UnsupportedOperationException("Not supported yet.");
     }

@@ -11,6 +11,8 @@ import akka.actor.Props;
 
 import java.awt.Point;
 import java.awt.Dimension;
+import java.util.HashMap;
+import java.util.Random;
 import scala.actors.threadpool.Arrays;
 import java.util.TreeSet;
 
@@ -25,18 +27,26 @@ public class World extends UntypedActor {
     int xdim;
     int ydim;
     
-    PointQuadTree foodPatches;
+    public static PointQuadTree<ActorRef> foodPatches = null;
+    public static HashMap<Point, ActorRef> patchMap = null;
     
     private ActorRef bRouter;
     //TreeSet<ActorRef> patches;
     TreeSet<String> patchRoutes;
     TreeSet<ActorRef> patches;
     
+    public static Random foodRandom = null;
+    
     public World(int xDim, int yDim)
     {
+        if(foodRandom == null)
+            foodRandom = new Random(System.currentTimeMillis());
+        if(patchMap == null)
+            patchMap = new HashMap<>();
         xdim = xDim;
         ydim = yDim;
-        foodPatches = new PointQuadTree(new Point(0,0), new Dimension(xdim, ydim));
+        if(foodPatches == null)
+            foodPatches = new PointQuadTree<>(new Point(0,0), new Dimension(xdim, ydim));
         patches = new TreeSet<>();
         //Ordering order = new Ordering();
         for(int x = 0; x < xDim; x++)
@@ -54,6 +64,7 @@ public class World extends UntypedActor {
                 }));
                 if(patch == null)
                     System.err.println("Failed to create patch.");
+                patchMap.put(new Point(x,y), patch);
                 patches.add(patch);
                 //patchRoutes.add(patch.self().path().address().toString());
             }

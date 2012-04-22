@@ -4,23 +4,46 @@
  */
 package ant;
 
+import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import akka.transactor.*;
+import java.awt.Point;
 import java.util.HashMap;
+import scala.concurrent.stm.Ref;
+import scala.concurrent.stm.japi.STM;
 
 /**
  *
  * @author Z98
  */
-public class Patch extends UntypedActor {
+/*
+public class Patch
+{
     int x, y;
-    int food = 0;
+    private Ref.View<Integer> food = STM.newRef(0);
+    float pher = 0;
+    HashMap<Integer, Ant> ants;
+    
+    public Patch(int x, int y)
+    {
+        food = new Ref<Integer>(10);
+        this.y = y;
+        ants = new HashMap<>();
+    }
+}
+*/
+
+public class Patch extends UntypedActor {
+    static int MAX_FOOD = 50;
+    final int x, y;
+    private Ref.View<Integer> food = STM.newRef(0);
     float pher = 0;
     /*
      * Pretty sure I just hosed myself due to the boxing/
      * unboxing that will take place with the key value.
      */
-    HashMap<Integer, Ant> ants;
-    HashMap<Integer, Ant> antsCopy;
+    HashMap<Integer, ActorRef> ants;
+    HashMap<Integer, ActorRef> antsCopy;
     
     public Patch(int x, int y)
     {
@@ -28,36 +51,84 @@ public class Patch extends UntypedActor {
         this.y = y;
         ants = new HashMap<>();
         antsCopy = ants;
+        food.set(World.foodRandom.nextInt(MAX_FOOD));
+        if(food.get() > 10)
+            World.foodPatches.insert(this.x, this.y, this.getSelf());
     }
 
     @Override
     public void onReceive(Object o) throws Exception {
-        if(o instanceof Eat)
+        if(o instanceof Coordinated)
         {
-            Eat eat = (Eat)o;
-            if(this.food >= eat.food)
-            {
-                this.food -= eat.food;
-                eat.ate = true;
-            }
+            Coordinated coordinated = (Coordinated)o;
             
-            getSender().tell(eat);
-            
-            return;
-        }
-        if(o instanceof Enter)
-        {
-            Enter enter = (Enter)o;
-            if(enter.ant == null)
+            Object message = coordinated.getMessage();
+            if(message instanceof Enter)
             {
-                ants.remove(enter.id);
+                Enter enter = (Enter)message;
+                final int enterX = enter.startX;
+                final int enterY = enter.startY;
+                final int leaveX = enter.endX;
+                final int leaveY = enter.endY;
+                final int antID = enter.id;
+                if (enter.relayed == false) {
+                    enter.relayed = true;
+                    ActorRef otherPatch = null;
+                    if (this.x == enterX && this.y == enterY) {
+                        otherPatch = World.patchMap.get(new Point(leaveX, leaveY));
+                    } else {
+                        otherPatch = World.patchMap.get(new Point(enterX, enterY));
+                    }
+                    otherPatch.tell(coordinated.coordinate(message));
+                }
+                final ActorRef ant = getSender();
+                coordinated.atomic(new Runnable()
+                        {
+                           @Override
+                           public void run()
+                           {
+                               if(enterX == x && enterY == y)
+                               {
+                                   ants.put(antID, ant);
+                               }
+                               if(leaveX == x && leaveY == y)
+                               {
+                                   ants.remove(antID);
+                               }
+                           }
+                        });
             }
             else
             {
-                ants.put(enter.id, enter.ant);
+                unhandled(coordinated);
             }
-            
-            return;
+            /*
+            if(message instanceof Eat)
+            {
+                Eat eat = (Eat)message;
+                final int amount = -eat.food;
+                coordinated.atomic(new Runnable()
+                        {
+                           @Override
+                           public void run()
+                           {
+                               if(food.get() >= amount)
+                                   STM.increment(food, amount);
+                           }
+                        });
+            }
+            */
+        }
+        if(o instanceof Eat)
+        {
+            Eat eat = (Eat)o;
+            final int amount = eat.food;
+            if(amount <= food.get())
+            {
+                STM.increment(food, -amount);
+                eat.ate = true;
+                getSender().tell(eat);
+            }
         }
         if(o instanceof Scent)
         {
