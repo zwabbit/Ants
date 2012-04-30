@@ -13,6 +13,7 @@ import akka.actor.UntypedActorFactory;
 import akka.routing.RoundRobinRouter;
 import akka.util.Duration;
 import akka.agent.Agent;
+import ant.gui.GUIActor;
 import java.io.IOException;
 
 import java.util.concurrent.TimeUnit;
@@ -40,6 +41,9 @@ public class AntMain {
                 return new World(100,100);
             }
         }), "world");
+        ActorRef gui = system.actorOf(new Props(GUIActor.class), "gui");
+        gui.tell(world);
+        world.tell("ants move");
         try {
             System.in.read();
             //ActorRef world = system.actorOf(new Props(new World(100,100)));
