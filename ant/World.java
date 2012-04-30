@@ -167,14 +167,12 @@ public class World extends UntypedActor {
         	Eat ea =new Eat();
         	ea.food=10;
         	patchMap.get(antMap.get(getSender())).tell(ea, getSender());
-        	System.out.println("eat");
         	return;
         }
         if(o instanceof Scent){
         	Scent sce = (Scent)o;
         	((Scent) o).smell = 1;
         	patchMap.get(antMap.get(getSender())).tell(sce, getSender());
-        	System.out.println("scent");
         	return;
         }
         throw new UnsupportedOperationException("Not supported yet.");
