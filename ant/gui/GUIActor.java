@@ -13,6 +13,7 @@ import akka.actor.ActorPath;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
+import ant.AntMove;
 import ant.GetPatchInfo;
 import ant.Patch;
 import ant.World;
@@ -20,11 +21,14 @@ import ant.World;
 public class GUIActor extends UntypedActor {
 	
 	GUIBackground gui;
+	GUIControls controls;
 	TreeSet<ActorRef> patches;
+	ActorRef world;
 	@Override
 	public void onReceive(Object o) throws Exception {
 
-		if (o instanceof ActorRef) {	
+		if (o instanceof ActorRef) {
+			world = ((ActorRef) o);
 			((ActorRef) o).tell("getDetails", getSelf());
 			return;
 		} 
@@ -57,12 +61,19 @@ public class GUIActor extends UntypedActor {
 					if (!antses.isEmpty()){
 						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.red);	
 					}
-					else{
+					else if (food != 0){
 						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.green);
+					}
+					else {
+						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.gray);
 					}
 					return;
 				}
 			}
+			return;
+		}
+		if (o instanceof AntMove){
+			world.tell(o);
 			return;
 		}
 		throw new UnsupportedOperationException("Not supported yet.");
@@ -76,6 +87,12 @@ public class GUIActor extends UntypedActor {
 		gui.setResizable(true);
 		gui.setLocationRelativeTo(null);
 		gui.setVisible(true);
+		
+		controls = new GUIControls(getSelf());
+		controls.pack();
+		controls.setResizable(true);
+		controls.setLocationRelativeTo(null);
+		controls.setVisible(true);
 	}
 	
 	public void getPatchInfo(ActorRef pa){

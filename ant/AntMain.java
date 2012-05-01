@@ -44,7 +44,7 @@ public class AntMain {
         ActorRef gui = system.actorOf(new Props(GUIActor.class), "gui");
         gui.tell(world);
         world.tell(gui);
-        world.tell("ants move");
+       // world.tell("ants move");
        /* try {
             System.in.read();
             //ActorRef world = system.actorOf(new Props(new World(100,100)));

@@ -44,6 +44,7 @@ public class Patch extends UntypedActor {
 	final int x, y;
 	private Ref.View<Integer> food = STM.newRef(0);
 	float pher = 0;
+	boolean keepGoing;
 	ActorRef world;
 	/*
 	 * Pretty sure I just hosed myself due to the boxing/
@@ -111,7 +112,9 @@ public class Patch extends UntypedActor {
 				if(!rly){
 					ant.tell(new Point(x,y));
 					//System.out.println("ant " + ant + " told to move");
-					ant.tell(new AntMove());
+					if (keepGoing){
+						ant.tell(new AntMove());
+					}
 				}
 			}
 			else
@@ -175,6 +178,7 @@ public class Patch extends UntypedActor {
 			return;
 		}
 		if(o instanceof AntMove){
+			keepGoing = ((AntMove)o).go;
 			world = getSender();
 			if(ants.size()>0){
 				Iterator<ActorRef> iter = ants.valuesIterator();

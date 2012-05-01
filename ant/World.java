@@ -88,7 +88,7 @@ public class World extends UntypedActor {
         }
         
         //***change initial ants here
-        for(int i = 0;i<3;i++){
+        for(int i = 0;i<5;i++){
         	int antX = antRandom.nextInt(xDim);
         	int antY = antRandom.nextInt(yDim);
         	ActorRef newAnt = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
@@ -120,12 +120,18 @@ public class World extends UntypedActor {
         		getSender().tell(new GUIRequest(xdim, ydim, patches));
         		return;
         	}
-        	if (o.equals("ants move")){
+        	/*if (o.equals("ants move")){
         		for(ActorRef p:patchMap.values()){
         			p.tell(new AntMove(), getSelf());
         		}
         		return;
-        	}
+        	}*/
+        }
+        if(o instanceof AntMove){
+        	for(ActorRef p:patchMap.values()){
+    			p.tell(o, getSelf());
+    		}
+        	return;
         }
         if(o instanceof ActorRef){
         	gui = (ActorRef)o;

@@ -26,6 +26,7 @@ public class Ant extends UntypedActor {
 	int knownNeighbors = 0;
 	Random moveRand = new Random();
 	Point loc;
+	Point home = new Point(50,50);
 	ActorRef world;
 	HashMap<ActorRef, GetPatchInfo> neighborhood = new HashMap<ActorRef, GetPatchInfo>();
 
@@ -70,11 +71,48 @@ public class Ant extends UntypedActor {
 				world.tell(rq, getSelf());
 			}
 			else{
+				System.out.println("moving");
 				if(energy > 0){
 					World.patchMap.get(loc).tell(new Scent(), getSelf());
 					//world.tell(new Scent(), getSelf());
-					energy = 0;
-					getSelf().tell(new AntMove());
+					
+					//getSelf().tell(new AntMove());
+					int xDist = Math.abs(home.x - loc.x);
+					int yDist = Math.abs(home.y - loc.y);
+					if(xDist < 5 && yDist < 5){
+						//drop food
+						energy = 0;
+						System.out.println("home!");
+						getSelf().tell(new AntMove());
+						knownNeighbors = 0;
+						neighborhood.clear();
+					}
+					else{
+						int goX = loc.x;
+						int goY = loc.y;
+						if(loc.x > home.x){
+							goX --;
+						}
+						else if(loc.x < home.x){
+							goX ++;
+						}
+						if(loc.y > home.y){
+							goY --;
+						}
+						else if(loc.y < home.y){
+							goY ++;
+						}
+						Enter ent = new Enter();
+						ent.endX = goX;
+						ent.endY = goY;
+						ent.startX = loc.x;
+						ent.startY = loc.y;
+						ent.id = id;
+						ent.ant = getSelf();
+						knownNeighbors = 0;
+						neighborhood.clear();
+						World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+					}
 					//go home
 				}
 				else{
@@ -171,7 +209,7 @@ public class Ant extends UntypedActor {
 			else if(loc.x == 0 || loc.x == 99 || loc.y == 0 || loc.y == 99){
 				expNeighbors = 6;
 			}
-			//System.out.println("upd neighbor " + knownNeighbors + " / " + expNeighbors);
+			System.out.println("upd neighbor " + knownNeighbors + " / " + expNeighbors);
 			if (knownNeighbors >= expNeighbors){
 				getSelf().tell(new AntMove());
 			}
