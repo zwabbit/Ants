@@ -60,7 +60,11 @@ public class Patch extends UntypedActor {
 		ants = STM.newTMap();
 		food.set(World.foodRandom.nextInt(MAX_FOOD));
 		if(food.get() > 10)
-			World.foodPatches.insert(this.x, this.y, this.getSelf());
+                {
+                    synchronized(World.foodPatches) {
+                        World.foodPatches.insert(this.x, this.y, this.getSelf());
+                    }
+                }
 	}
 
 	@Override
