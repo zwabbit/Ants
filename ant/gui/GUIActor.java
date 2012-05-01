@@ -1,6 +1,7 @@
 package ant.gui;
 
 import java.awt.Color;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 import javax.swing.JPanel;
@@ -31,23 +32,36 @@ public class GUIActor extends UntypedActor {
 			makeGUI((GUIRequest)o);
 			return;
 		}
+		if (o instanceof GUIUpdate){
+			/*for (ActorRef p: ((GUIUpdate)o).patches){
+				getPatchInfo(p);
+			}*/
+		}
 		if (o instanceof GetPatchInfo){
-			if(((GetPatchInfo) o).x == -1){
-				for(ActorRef p : patches){
-					p.tell((GetPatchInfo) o, getSelf());
-				}
+			if (gui == null){
+				
 			}
 			else{
-				int py = ((GetPatchInfo) o).y;
-				int px = ((GetPatchInfo) o).x;
-				Integer food = ((GetPatchInfo) o).food;
-				TMap.View<Integer, ActorRef>antses = ((GetPatchInfo) o).ants;
-				int i = py * gui.yD + px; 
-				GUIBackground.updatePatchTT((JPanel)gui.gameBoard.getComponent(i), "(" + px + ", " + py + ") " + food);
-				if (!antses.isEmpty()){
-					GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.red);	
+				if(((GetPatchInfo) o).x == -1){
+					for(ActorRef p : patches){
+						p.tell((GetPatchInfo) o, getSelf());
+					}
 				}
-				return;
+				else{
+					int py = ((GetPatchInfo) o).y;
+					int px = ((GetPatchInfo) o).x;
+					Integer food = ((GetPatchInfo) o).food;
+					TMap.View<Integer, ActorRef>antses = ((GetPatchInfo) o).ants;
+					int i = py * gui.yD + px; 
+					GUIBackground.updatePatchTT((JPanel)gui.gameBoard.getComponent(i), "(" + px + ", " + py + ") " + food + " " + antses.size());
+					if (!antses.isEmpty()){
+						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.red);	
+					}
+					else{
+						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.green);
+					}
+					return;
+				}
 			}
 			return;
 		}

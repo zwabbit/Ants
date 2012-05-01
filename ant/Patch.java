@@ -7,8 +7,12 @@ package ant;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.transactor.Coordinated;
+import ant.gui.GUIUpdate;
+
 import java.awt.Point;
 import java.util.HashMap;
+import scala.collection.Iterator;
+
 import scala.concurrent.stm.Ref;
 import scala.concurrent.stm.TMap;
 import scala.concurrent.stm.japi.STM;
@@ -40,6 +44,7 @@ public class Patch extends UntypedActor {
 	final int x, y;
 	private Ref.View<Integer> food = STM.newRef(0);
 	float pher = 0;
+	ActorRef world;
 	/*
 	 * Pretty sure I just hosed myself due to the boxing/
 	 * unboxing that will take place with the key value.
@@ -72,7 +77,9 @@ public class Patch extends UntypedActor {
 				final int leaveX = enter.endX;
 				final int leaveY = enter.endY;
 				final int antID = enter.id;
+				final boolean rly = enter.relayed;
 				if (enter.relayed == false) {
+					//System.out.println("ant " + enter.ant + " moved to (" + ((Enter)message).endX + "," + ((Enter) message).endY + ") " + food.get());
 					enter.relayed = true;
 					ActorRef otherPatch = null;
 					if (this.x == enterX && this.y == enterY) {
@@ -82,7 +89,7 @@ public class Patch extends UntypedActor {
 					}
 					otherPatch.tell(coordinated.coordinate(message));
 				}
-				final ActorRef ant = getSender();
+				final ActorRef ant = enter.ant;
 				coordinated.atomic(new Runnable()
 				{
 					@Override
@@ -91,6 +98,8 @@ public class Patch extends UntypedActor {
 						if(enterX == x && enterY == y)
 						{
 							ants.put(antID, ant);
+							
+							//System.out.println("ant " + ant + " added ");
 						}
 						if(leaveX == x && leaveY == y)
 						{
@@ -98,6 +107,12 @@ public class Patch extends UntypedActor {
 						}
 					}
 				});
+				world.tell(new GUIUpdate(new GetPatchInfo(x, y, food, pher, ants)));
+				if(!rly){
+					ant.tell(new Point(x,y));
+					//System.out.println("ant " + ant + " told to move");
+					ant.tell(new AntMove());
+				}
 			}
 			else
 			{
@@ -136,11 +151,12 @@ public class Patch extends UntypedActor {
 							a -= amount;
 						}
 
-						return a;
+						return 0;
 					}
 						});
 				eat.ate = true;
 				getSender().tell(eat);
+				//System.out.println("ant " + getSender() + " ate (" + x + ", " + y +")");
 			}
 			return;
 		}
@@ -148,7 +164,7 @@ public class Patch extends UntypedActor {
 		{
 			Scent sent = (Scent)o;
 			pher += sent.smell;
-
+			//System.out.println("scent");
 			return;
 		}
 		if(o instanceof GetAnts)
@@ -158,11 +174,20 @@ public class Patch extends UntypedActor {
 			getSender().tell(gAnts);
 			return;
 		}
+		if(o instanceof AntMove){
+			world = getSender();
+			if(ants.size()>0){
+				Iterator<ActorRef> iter = ants.valuesIterator();
+				while (iter.hasNext()){
+					iter.next().tell(o);
+				}
+			}
+			return;
+		}
 		if(o instanceof GetPatchInfo)
 		{
-
 			getSender().tell(new GetPatchInfo(x, y, food, pher, ants), getSelf());
-			
+
 			return;
 		}
 		if(o instanceof ActorRef){
@@ -176,6 +201,6 @@ public class Patch extends UntypedActor {
 			//antsCopy = new HashMap<>(ants);
 			return;
 		}
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Not supported yet." + o.toString());
 	}
 }

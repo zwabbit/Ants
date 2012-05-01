@@ -5,10 +5,15 @@
 package ant;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import akka.transactor.Coordinated;
+import akka.util.Timeout;
 
 /**
  *
@@ -19,6 +24,7 @@ public class Ant extends UntypedActor {
 	boolean alive = true;
 	int energy = 0;
 	int knownNeighbors = 0;
+	Random moveRand = new Random();
 	Point loc;
 	ActorRef world;
 	HashMap<ActorRef, GetPatchInfo> neighborhood = new HashMap<ActorRef, GetPatchInfo>();
@@ -32,10 +38,16 @@ public class Ant extends UntypedActor {
 			Eat eat = (Eat)o;
 			if(eat.ate == true)
 				energy += FOOD_NEED;
+			getSelf().tell(new AntMove());
 			return;
 		}
 		if(o instanceof ActorRef){
 			world = (ActorRef)o;
+			return;
+		}
+		if(o instanceof Point){
+			loc = (Point)o;
+			//System.out.println("at " + o.toString());
 			return;
 		}
 		if(o instanceof Integer){
@@ -43,71 +55,105 @@ public class Ant extends UntypedActor {
 			return;
 		}
 		if(o instanceof AntMove){
-			if(knownNeighbors < 9){
+			int expNeighbors = 9;
+			if((loc.x == 0 || loc.x == 99) && (loc.y == 0 || loc.y == 99)){
+				expNeighbors = 4;
+			}
+			else if(loc.x == 0 || loc.x == 99 || loc.y == 0 || loc.y == 99){
+				expNeighbors = 6;
+			}
+			if(knownNeighbors < expNeighbors){
 				VisionRequest rq = new VisionRequest();
 				rq.id = id;
+				rq.center = loc;
+				//System.out.println("rq");
 				world.tell(rq, getSelf());
 			}
 			else{
 				if(energy > 0){
-					world.tell(new Scent(), getSelf());
-
+					World.patchMap.get(loc).tell(new Scent(), getSelf());
+					//world.tell(new Scent(), getSelf());
+					energy = 0;
+					getSelf().tell(new AntMove());
 					//go home
 				}
-				else if(neighborhood.get(World.patchMap.get(loc)).food > 0){
-					world.tell(new Eat(), getSelf());
-				}
 				else{
-					ActorRef move = null;
-					int maxfood = 0;
-					ActorRef bestPherPatch = null;
-					float maxpher = 0;
-					for(ActorRef r:neighborhood.keySet()){
-						if(neighborhood.get(r).food > maxfood){
-							maxfood = neighborhood.get(r).food;
-							move = r;
+					ActorRef ref = World.patchMap.get(loc);
+					GetPatchInfo gp = neighborhood.get(ref);
+					if (gp == null){
+						//System.out.println("ant at " + loc.toString() + " couldn't find actor " + ref);
+					}
+					else{
+						if(neighborhood.get(World.patchMap.get(loc)).food > 0){
+							neighborhood.clear();
+							knownNeighbors = 0;
+							World.patchMap.get(loc).tell(new Eat(), getSelf());
 						}
-						if(neighborhood.get(r).pher > maxpher){
-							maxpher = neighborhood.get(r).pher;
-							bestPherPatch = r;
+						else{
+							ActorRef move = null;
+							int maxfood = 0;
+							ActorRef bestPherPatch = null;
+							float maxpher = 0;
+							for(ActorRef r:neighborhood.keySet()){
+								if(neighborhood.get(r).food > maxfood){
+									maxfood = neighborhood.get(r).food;
+									move = r;
+								}
+								if(neighborhood.get(r).pher > maxpher){
+									maxpher = neighborhood.get(r).pher;
+									bestPherPatch = r;
+								}
+							}
+							Enter en = new Enter();
+							GetPatchInfo nfo;
+							if (move != null){
+								nfo = neighborhood.get(move);
+								//System.out.println("foodmove");
+							}
+							else if (bestPherPatch != null){
+								nfo = neighborhood.get(bestPherPatch);
+								//System.out.println("phermove");
+							}
+							else {
+								ArrayList<ActorRef> ar = new ArrayList<ActorRef>();
+								for(ActorRef act:neighborhood.keySet()){
+									ar.add(act);
+								}
+								
+								
+								nfo = neighborhood.get(ar.get(moveRand.nextInt(ar.size())));
+								//System.out.println("randmove");
+							}
+							en.endX = nfo.x;
+							en.endY = nfo.y;
+							en.startX = loc.x;
+							en.startY = loc.y;
+							en.id = id;
+							en.ant = getSelf();
+							neighborhood.clear();
+							knownNeighbors = 0;
+							//world.tell(en, getSelf());
+							if(en.endX == en.startX && en.endY == en.startY){
+								//System.out.println("tried to move to self");
+								getSelf().tell(new AntMove());
+							}
+							else{
+								World.patchMap.get(new Point(en.endX, en.endY)).tell(new Coordinated(en, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+							}
 						}
 					}
-					Enter en = new Enter();
-					if (move != null){
-						GetPatchInfo nfo = neighborhood.get(move);
-
-						en.endX = nfo.x;
-						en.endY = nfo.y;
-						en.id = id;
-
-
-						//world.tell(m, getSelf());
-					}
-					else if (bestPherPatch != null){
-						GetPatchInfo nfo = neighborhood.get(bestPherPatch);
-						en.endX = nfo.x;
-						en.endY = nfo.y;
-						en.id = id;
-						//world.tell(m, getSelf());
-					}
-					else {
-						GetPatchInfo nfo = neighborhood.get((ActorRef)neighborhood.keySet().toArray()[0]);
-						en.endX = nfo.x;
-						en.endY = nfo.y;
-						en.id = id;
-						//world.tell(m, getSelf());
-					}
-					world.tell(en, getSelf());
+					neighborhood.clear();
+					knownNeighbors = 0;
 				}
-				neighborhood.clear();
 			}
 			return;
 		}
 		if(o instanceof VisionRequest){
 			VisionRequest rq = (VisionRequest)o;
-			loc = rq.center;
+			//loc = rq.center;
 			for(ActorRef p : rq.patches){
 				if(p != null){
+					//System.out.println("asked " + p.toString());
 					p.tell(new GetPatchInfo(), getSelf());
 				}
 			}
@@ -116,8 +162,17 @@ public class Ant extends UntypedActor {
 		if(o instanceof GetPatchInfo){
 			GetPatchInfo info = (GetPatchInfo)o;
 			neighborhood.put(getSender(), info);
+			
 			knownNeighbors ++;
-			if (knownNeighbors == 9){
+			int expNeighbors = 9;
+			if((loc.x == 0 || loc.x == 99) && (loc.y == 0 || loc.y == 99)){
+				expNeighbors = 4;
+			}
+			else if(loc.x == 0 || loc.x == 99 || loc.y == 0 || loc.y == 99){
+				expNeighbors = 6;
+			}
+			//System.out.println("upd neighbor " + knownNeighbors + " / " + expNeighbors);
+			if (knownNeighbors >= expNeighbors){
 				getSelf().tell(new AntMove());
 			}
 			return;

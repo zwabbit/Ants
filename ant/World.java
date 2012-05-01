@@ -9,6 +9,7 @@ import akka.routing.BroadcastRouter;
 import akka.transactor.Coordinated;
 import akka.util.Timeout;
 import ant.gui.GUIRequest;
+import ant.gui.GUIUpdate;
 import ant.point.PointQuadTree;
 import akka.actor.Props;
 
@@ -35,7 +36,8 @@ public class World extends UntypedActor {
     public static PointQuadTree<ActorRef> foodPatches = null;
     public static HashMap<Point, ActorRef> patchMap = null;
     public static HashMap<ActorRef, Point> antMap = null;
-    public static HashMap<ActorRef, Enter> moveList = null;
+    //public static HashMap<ActorRef, Enter> moveList = null;
+    static ActorRef gui;
     
     private ActorRef bRouter;
     //TreeSet<ActorRef> patches;
@@ -53,8 +55,8 @@ public class World extends UntypedActor {
             patchMap = new HashMap<>();
         if(antMap == null)
         	antMap = new HashMap<>();
-        if(moveList == null)
-        	moveList = new HashMap<>();
+        //if(moveList == null)
+        	//moveList = new HashMap<>();
         if(antRandom == null)
             antRandom = new Random(System.currentTimeMillis());
         xdim = xDim;
@@ -66,37 +68,42 @@ public class World extends UntypedActor {
         //Ordering order = new Ordering();
         for(int x = 0; x < xDim; x++)
         {
-            for(int y = 0; y < yDim; y++)
-            {
-                final int fx = x;
-                final int fy = y;
-                //Patch patch = new Patch(x,y);
-                ActorRef patch = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
-                    public UntypedActor create()
-                    {
-                        return new Patch(fx, fy);
-                    }
-                }));
-                if(patch == null)
-                    System.err.println("Failed to create patch.");
-                patchMap.put(new Point(x,y), patch);
-                patches.add(patch);
-                //patchRoutes.add(patch.self().path().address().toString());
-            }
+        	for(int y = 0; y < yDim; y++)
+        	{
+        		final int fx = x;
+        		final int fy = y;
+        		//Patch patch = new Patch(x,y);
+        		ActorRef patch = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
+        			public UntypedActor create()
+        			{
+        				return new Patch(fx, fy);
+        			}
+        		}));
+        		if(patch == null)
+        			System.err.println("Failed to create patch.");
+        		patchMap.put(new Point(x,y), patch);
+        		patches.add(patch);
+        		//patchRoutes.add(patch.self().path().address().toString());
+        	}
         }
         
-        int antX = antRandom.nextInt(xDim);
-        int antY = antRandom.nextInt(yDim);
-        ActorRef newAnt = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
-        	public UntypedActor create()
-            {
-        		return new Ant();
-            }
-        }));
-        patchMap.get(new Point(antX,antY)).tell(newAnt);
-        antMap.put(newAnt, new Point(antX,antY));
-        newAnt.tell((Integer)antMap.size());
-        newAnt.tell(getSelf());
+        //***change initial ants here
+        for(int i = 0;i<3;i++){
+        	int antX = antRandom.nextInt(xDim);
+        	int antY = antRandom.nextInt(yDim);
+        	ActorRef newAnt = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
+        		public UntypedActor create()
+        		{
+        			return new Ant();
+        		}
+        	}));
+        	patchMap.get(new Point(antX,antY)).tell(newAnt);
+        	antMap.put(newAnt, new Point(antX,antY));
+        	newAnt.tell(new Point(antX,antY));
+        	newAnt.tell((Integer)antMap.size());
+        	newAnt.tell(getSelf());
+        	        	
+        }
         
         //bRouter = getContext().actorOf(new Props(Patch.class).withRouter(BroadcastRouter.apply(patches)));
         bRouter = AntMain.system.actorOf(new Props(Patch.class).withRouter(BroadcastRouter.create(patches)));
@@ -114,15 +121,25 @@ public class World extends UntypedActor {
         		return;
         	}
         	if (o.equals("ants move")){
-        		for(ActorRef ant:antMap.keySet()){
-        			ant.tell(new AntMove(), getSelf());
+        		for(ActorRef p:patchMap.values()){
+        			p.tell(new AntMove(), getSelf());
         		}
         		return;
         	}
         }
+        if(o instanceof ActorRef){
+        	gui = (ActorRef)o;
+        	return;
+        }
+        if(o instanceof GUIUpdate){
+        	GetPatchInfo info = ((GUIUpdate)o).info;
+        	//System.out.println("gui update");
+        	gui.tell(info, getSender());
+        	return;
+        }
         if(o instanceof VisionRequest){
         	VisionRequest rq = (VisionRequest)o;
-        	Point center = antMap.get(getSender());
+        	Point center = rq.center;
         	ArrayList<ActorRef> patches = new ArrayList<ActorRef>();
         	
         	int cx = center.x, cy = center.y;
@@ -144,14 +161,18 @@ public class World extends UntypedActor {
         	
         }
         if(o instanceof Enter){
-          	System.out.println("ant " + antMap.get(getSender()).toString() + " moved to (" + ((Enter)o).endX + "," + ((Enter) o).endY + ")");
+          	/*System.out.println("ant " + antMap.get(getSender()).toString() + " moved to (" + ((Enter)o).endX + "," + ((Enter) o).endY + ")");
         	((Enter) o).startX = antMap.get(getSender()).x;
         	((Enter) o).startY = antMap.get(getSender()).y;
-        	moveList.put(getSender(), (Enter)o);
+        	//moveList.put(getSender(), (Enter)o);
         	Enter ent = ((Enter) o);
-        	Coordinated coord = new Coordinated(ent, new Timeout(5, TimeUnit.SECONDS));
-			patchMap.get(new Point(ent.endX, ent.endY)).tell(coord);
+  			patchMap.get(new Point(ent.endX, ent.endY)).tell(new Coordinated(ent, new Timeout(5, TimeUnit.SECONDS)));
 			antMap.put(getSender(), new Point(ent.endX, ent.endY));
+        	patchMap.get(new Point(ent.endX, ent.endY)).tell(new GetPatchInfo(), gui);
+        	patchMap.get(new Point(ent.startX, ent.startY)).tell(new GetPatchInfo(), gui);
+        	getSender().tell(new Point(ent.endX, ent.endY));
+			getSender().tell(new AntMove(), getSelf());
+			//System.out.println("move");
         	
         	/*if(moveList.size() == antMap.size()){
         		for(Enter en:moveList.values()){
@@ -164,15 +185,21 @@ public class World extends UntypedActor {
         	return;
         }
         if(o instanceof Eat){
+        	//System.out.println("ate");
         	Eat ea =new Eat();
-        	ea.food=10;
+        	ea.food=1;
         	patchMap.get(antMap.get(getSender())).tell(ea, getSender());
+        	patchMap.get(antMap.get(getSender())).tell(new GetPatchInfo(), gui);
+        	getSender().tell(new AntMove(), getSelf());
         	return;
         }
         if(o instanceof Scent){
         	Scent sce = (Scent)o;
+        	//System.out.println("scent");
         	((Scent) o).smell = 1;
         	patchMap.get(antMap.get(getSender())).tell(sce, getSender());
+        	patchMap.get(antMap.get(getSender())).tell(new GetPatchInfo(), gui);
+        	getSender().tell(new AntMove(), getSelf());
         	return;
         }
         throw new UnsupportedOperationException("Not supported yet.");
