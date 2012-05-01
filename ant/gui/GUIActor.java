@@ -65,7 +65,7 @@ public class GUIActor extends UntypedActor {
 						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.green);
 					}
 					else {
-						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.gray);
+						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.LIGHT_GRAY);
 					}
 					return;
 				}

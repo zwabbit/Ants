@@ -71,7 +71,6 @@ public class Ant extends UntypedActor {
 				world.tell(rq, getSelf());
 			}
 			else{
-				System.out.println("moving");
 				if(energy > 0){
 					World.patchMap.get(loc).tell(new Scent(), getSelf());
 					//world.tell(new Scent(), getSelf());
@@ -82,7 +81,7 @@ public class Ant extends UntypedActor {
 					if(xDist < 5 && yDist < 5){
 						//drop food
 						energy = 0;
-						System.out.println("home!");
+						//System.out.println("home!");
 						getSelf().tell(new AntMove());
 						knownNeighbors = 0;
 						neighborhood.clear();
@@ -111,7 +110,12 @@ public class Ant extends UntypedActor {
 						ent.ant = getSelf();
 						knownNeighbors = 0;
 						neighborhood.clear();
-						World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+						if(goX == loc.x && goY == loc.y){
+							//System.out.println("tried to move to self while going home");
+						}
+						else{
+							World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+						}
 					}
 					//go home
 				}
@@ -209,7 +213,7 @@ public class Ant extends UntypedActor {
 			else if(loc.x == 0 || loc.x == 99 || loc.y == 0 || loc.y == 99){
 				expNeighbors = 6;
 			}
-			System.out.println("upd neighbor " + knownNeighbors + " / " + expNeighbors);
+			//System.out.println("upd neighbor " + knownNeighbors + " / " + expNeighbors);
 			if (knownNeighbors >= expNeighbors){
 				getSelf().tell(new AntMove());
 			}
