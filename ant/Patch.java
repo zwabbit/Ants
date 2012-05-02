@@ -44,7 +44,7 @@ public class Patch extends UntypedActor {
 	final int x, y;
 	private Ref.View<Integer> food = STM.newRef(0);
 	float pher = 0;
-	boolean keepGoing;
+	boolean keepGoing = false;
 	ActorRef world;
 	/*
 	 * Pretty sure I just hosed myself due to the boxing/
@@ -77,49 +77,87 @@ public class Patch extends UntypedActor {
 			if(message instanceof Enter)
 			{
 				Enter enter = (Enter)message;
-				final int enterX = enter.startX;
-				final int enterY = enter.startY;
-				final int leaveX = enter.endX;
-				final int leaveY = enter.endY;
+				final int enterX = enter.endX;
+				final int enterY = enter.endY;
+				final int leaveX = enter.startX;
+				final int leaveY = enter.startY;
 				final int antID = enter.id;
 				final boolean rly = enter.relayed;
-				if (enter.relayed == false) {
-					//System.out.println("ant " + enter.ant + " moved to (" + ((Enter)message).endX + "," + ((Enter) message).endY + ") " + food.get());
-					enter.relayed = true;
-					ActorRef otherPatch = null;
-					if (this.x == enterX && this.y == enterY) {
-						otherPatch = World.patchMap.get(new Point(leaveX, leaveY));
-					} else {
-						otherPatch = World.patchMap.get(new Point(enterX, enterY));
+				boolean succ = true;
+				if (enterX != leaveX || enterY != leaveY){
+
+
+					if (enter.relayed == false) {
+						System.out.println("ant " + enter.ant + " moved from (" + ((Enter)message).startX + "," + ((Enter)message).startY + ") to (" + ((Enter)message).endX + "," + ((Enter) message).endY + ") " + food.get());
+						enter.relayed = true;
+						ActorRef otherPatch = null;
+						if (this.x == enterX && this.y == enterY) {
+							otherPatch = World.patchMap.get(new Point(leaveX, leaveY));
+						} else {
+							otherPatch = World.patchMap.get(new Point(enterX, enterY));
+						}
+						otherPatch.tell(coordinated.coordinate(message));
 					}
-					otherPatch.tell(coordinated.coordinate(message));
+					final ActorRef ant = enter.ant;
+					try{
+						coordinated.atomic(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								if(enterX == x && enterY == y)
+								{
+									ants.put(antID, ant);
+									//System.out.println(antID + " enter " + x + " " + y);
+									//System.out.println("ant " + ant + " added ");
+								}
+								if(leaveX == x && leaveY == y)
+								{
+									ants.remove(antID);
+									//System.out.println(antID + " leave " + x + " " + y);
+								}
+								
+							}
+						});
+					}
+					catch(Exception e){
+						succ = false;
+						throw e;
+					}
+					if( food == null || ants == null){
+						//System.out.println(x + y + food.get() +  pher + ants.size());
+					}
+					world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
+					if(succ){
+						
+						if(!rly){
+							ant.tell(new Point(x,y));
+							//System.out.println("ant " + ant + " told to move");
+							if (keepGoing){
+								ant.tell(new AntMove());
+							}
+						}
+					}
+					else{
+						if (keepGoing){
+							ant.tell(new AntMove());
+						}
+					}
 				}
-				final ActorRef ant = enter.ant;
-				coordinated.atomic(new Runnable()
+				else{
+					
+				}
+				//System.out.println("(" + x +", " + y + ") " + ants.size());
+				if(leaveX == x && leaveY == y)
 				{
-					@Override
-					public void run()
-					{
-						if(enterX == x && enterY == y)
-						{
-							ants.put(antID, ant);
-							
-							//System.out.println("ant " + ant + " added ");
-						}
-						if(leaveX == x && leaveY == y)
-						{
-							ants.remove(antID);
-						}
-					}
-				});
-				world.tell(new GUIUpdate(new GetPatchInfo(x, y, food, pher, ants)));
-				if(!rly){
-					ant.tell(new Point(x,y));
-					//System.out.println("ant " + ant + " told to move");
-					if (keepGoing){
-						ant.tell(new AntMove());
-					}
+					//System.out.println("leave " + x + " " + y);
+					//world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, 0)));
 				}
+				else{
+					//System.out.println("enter " + x + " " + y);
+					///world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
+				}
+				
 			}
 			else
 			{
@@ -167,6 +205,21 @@ public class Patch extends UntypedActor {
 			}
 			return;
 		}
+		if(o instanceof Drop){
+			Integer amt = ((Drop)o).amt;
+			final int amount = amt;
+			Integer newFood = STM.getAndTransform(food, new Transformer<Integer>()
+					{
+				@Override
+				public Integer apply(Integer a) {		
+						a += amount;
+					return a;
+				}
+					});
+			//System.out.println("ant " + getSender() + " dropped (" + x + ", " + y +")");
+			return;
+			
+		}
 		if(o instanceof Scent)
 		{
 			Scent sent = (Scent)o;
@@ -194,7 +247,7 @@ public class Patch extends UntypedActor {
 		}
 		if(o instanceof GetPatchInfo)
 		{
-			getSender().tell(new GetPatchInfo(x, y, food, pher, ants), getSelf());
+			getSender().tell(new GetPatchInfo(x, y, food.get(), pher, ants.size()), getSelf());
 
 			return;
 		}

@@ -55,10 +55,10 @@ public class GUIActor extends UntypedActor {
 					int py = ((GetPatchInfo) o).y;
 					int px = ((GetPatchInfo) o).x;
 					Integer food = ((GetPatchInfo) o).food;
-					TMap.View<Integer, ActorRef>antses = ((GetPatchInfo) o).ants;
+					Integer antses = ((GetPatchInfo) o).ants;
 					int i = py * gui.yD + px; 
-					GUIBackground.updatePatchTT((JPanel)gui.gameBoard.getComponent(i), "(" + px + ", " + py + ") " + food + " " + antses.size());
-					if (!antses.isEmpty()){
+					GUIBackground.updatePatchTT((JPanel)gui.gameBoard.getComponent(i), "(" + px + ", " + py + ") " + food + " " + antses);
+					if (antses > 0){
 						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.red);	
 					}
 					else if (food != 0){

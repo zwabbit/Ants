@@ -88,7 +88,7 @@ public class World extends UntypedActor {
         }
         
         //***change initial ants here
-        for(int i = 0;i<5;i++){
+        for(int i = 0;i<2;i++){
         	int antX = antRandom.nextInt(xDim);
         	int antY = antRandom.nextInt(yDim);
         	ActorRef newAnt = AntMain.system.actorOf(new Props(new UntypedActorFactory() {

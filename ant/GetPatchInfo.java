@@ -11,7 +11,7 @@ public class GetPatchInfo {
 	public final int y;
 	public final Integer food;
 	public final float pher;
-	public final TMap.View<Integer, ActorRef> ants;
+	public final Integer ants;
 	
 	public GetPatchInfo(){
 		y=-1;
@@ -21,10 +21,10 @@ public class GetPatchInfo {
 		pher=-1;
 	}
 	
-	public GetPatchInfo(int xi, int yi, View<Integer> food2, float p, TMap.View<Integer, ActorRef> ants2){
+	public GetPatchInfo(int xi, int yi, Integer food2, float p, Integer ants2){
 		x = xi;
 		y = yi;
-		food = food2.get();
+		food = food2;
 		pher = p;
 		ants = ants2;
 	}

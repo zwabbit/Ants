@@ -80,11 +80,15 @@ public class Ant extends UntypedActor {
 					int yDist = Math.abs(home.y - loc.y);
 					if(xDist < 5 && yDist < 5){
 						//drop food
+						World.patchMap.get(loc).tell(new Drop(10), getSelf());
 						energy = 0;
+						
 						//System.out.println("home!");
-						getSelf().tell(new AntMove());
 						knownNeighbors = 0;
 						neighborhood.clear();
+						getSelf().tell(new AntMove());
+						
+						
 					}
 					else{
 						int goX = loc.x;
@@ -114,7 +118,17 @@ public class Ant extends UntypedActor {
 							//System.out.println("tried to move to self while going home");
 						}
 						else{
-							World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+							//try{
+								World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+							/*	loc = new Point(ent.endX, ent.endY);
+							}catch (Exception e) {
+								System.out.println(e);
+								neighborhood.clear();
+								knownNeighbors = 0;
+								loc = new Point(ent.startX, ent.startY);
+								getSelf().tell(new AntMove());
+							  //throw e;
+							}*/
 						}
 					}
 					//go home
@@ -126,10 +140,10 @@ public class Ant extends UntypedActor {
 						//System.out.println("ant at " + loc.toString() + " couldn't find actor " + ref);
 					}
 					else{
-						if(neighborhood.get(World.patchMap.get(loc)).food > 0){
-							neighborhood.clear();
-							knownNeighbors = 0;
-							World.patchMap.get(loc).tell(new Eat(), getSelf());
+						if(neighborhood.get(World.patchMap.get(loc)).food > 0 && (Math.abs(home.x - loc.x) > 5 || Math.abs(home.y - loc.y) > 5)){
+								neighborhood.clear();
+								knownNeighbors = 0;
+								World.patchMap.get(loc).tell(new Eat(), getSelf());
 						}
 						else{
 							ActorRef move = null;
@@ -137,13 +151,17 @@ public class Ant extends UntypedActor {
 							ActorRef bestPherPatch = null;
 							float maxpher = 0;
 							for(ActorRef r:neighborhood.keySet()){
-								if(neighborhood.get(r).food > maxfood){
-									maxfood = neighborhood.get(r).food;
-									move = r;
-								}
-								if(neighborhood.get(r).pher > maxpher){
-									maxpher = neighborhood.get(r).pher;
-									bestPherPatch = r;
+								int xDist = Math.abs(home.x - neighborhood.get(r).x);
+								int yDist = Math.abs(home.y - neighborhood.get(r).y);
+								if (xDist > 5 || yDist > 5){
+									if(neighborhood.get(r).food > maxfood){
+										maxfood = neighborhood.get(r).food;
+										move = r;
+									}
+									if(neighborhood.get(r).pher > maxpher){
+										maxpher = neighborhood.get(r).pher;
+										bestPherPatch = r;
+									}
 								}
 							}
 							Enter en = new Enter();
@@ -180,7 +198,17 @@ public class Ant extends UntypedActor {
 								getSelf().tell(new AntMove());
 							}
 							else{
-								World.patchMap.get(new Point(en.endX, en.endY)).tell(new Coordinated(en, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+								//try{
+									World.patchMap.get(new Point(en.endX, en.endY)).tell(new Coordinated(en, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+									/*loc = new Point(en.endX, en.endY);
+								}catch (Exception e) {
+									System.out.println(e);
+									neighborhood.clear();
+									knownNeighbors = 0;
+									loc = new Point(en.startX, en.startY);
+									getSelf().tell(new AntMove());
+								  //throw e;
+								}*/
 							}
 						}
 					}
