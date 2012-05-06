@@ -89,7 +89,7 @@ public class Patch extends UntypedActor {
 
 
 					if (enter.relayed == false) {
-						System.out.println("ant " + enter.ant + " moved from (" + ((Enter)message).startX + "," + ((Enter)message).startY + ") to (" + ((Enter)message).endX + "," + ((Enter) message).endY + ") " + food.get());
+						//System.out.println("ant " + enter.ant + " moved from (" + ((Enter)message).startX + "," + ((Enter)message).startY + ") to (" + ((Enter)message).endX + "," + ((Enter) message).endY + ") " + food.get());
 						enter.relayed = true;
 						ActorRef otherPatch = null;
 						if (this.x == enterX && this.y == enterY) {
@@ -123,14 +123,13 @@ public class Patch extends UntypedActor {
 					}
 					catch(Exception e){
 						succ = false;
-						throw e;
+						//throw e;
 					}
 					if( food == null || ants == null){
 						//System.out.println(x + y + food.get() +  pher + ants.size());
 					}
-					world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
 					if(succ){
-						
+						world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
 						if(!rly){
 							ant.tell(new Point(x,y));
 							//System.out.println("ant " + ant + " told to move");
