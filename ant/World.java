@@ -36,6 +36,7 @@ public class World extends UntypedActor {
     public static PointQuadTree<ActorRef> foodPatches = null;
     public static HashMap<Point, ActorRef> patchMap = null;
     public static HashMap<ActorRef, Point> antMap = null;
+    public static boolean keepGoing = true;
     //public static HashMap<ActorRef, Enter> moveList = null;
     static ActorRef gui;
     
@@ -90,7 +91,7 @@ public class World extends UntypedActor {
         }
         
         //***change initial ants here
-        for(int i = 0;i<2;i++){
+        for(int i = 0;i<15;i++){
         	int antX = antRandom.nextInt(xDim);
         	int antY = antRandom.nextInt(yDim);
         	ActorRef newAnt = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
@@ -117,6 +118,14 @@ public class World extends UntypedActor {
         {
             foodPatches.clear();
         }
+        if(o instanceof Pause){
+    		keepGoing = false;
+    		return;
+    	}
+    	if(o instanceof Play){
+    		keepGoing = true;
+    		return;
+    	}
         if(o instanceof String){
         	if (o.equals("getDetails")){
         		getSender().tell(new GUIRequest(xdim, ydim, patches));

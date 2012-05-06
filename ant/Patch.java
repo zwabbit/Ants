@@ -128,19 +128,22 @@ public class Patch extends UntypedActor {
 					if( food == null || ants == null){
 						//System.out.println(x + y + food.get() +  pher + ants.size());
 					}
+					world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
 					if(succ){
-						world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
+						
 						if(!rly){
 							ant.tell(new Point(x,y));
 							//System.out.println("ant " + ant + " told to move");
-							if (keepGoing){
+							if (World.keepGoing){
 								ant.tell(new AntMove());
 							}
 						}
 					}
 					else{
-						if (keepGoing){
-							ant.tell(new AntMove());
+						if(!rly){
+							if (World.keepGoing){
+								ant.tell(new AntMove());
+							}
 						}
 					}
 				}

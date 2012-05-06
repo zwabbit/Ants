@@ -5,6 +5,8 @@ import javax.swing.*;
 import akka.actor.ActorRef;
 import ant.AntMove;
 import ant.GetPatchInfo;
+import ant.World;
+import ant.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -53,7 +55,13 @@ public class GUIControls extends JFrame{
 		pauseButton.setBounds(0,30,90,30);
 		pauseButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e){
-				play = false;
+				if(World.keepGoing){
+					actor.tell(new Pause());
+				}
+				else{
+					actor.tell(new Play());
+					actor.tell(new AntMove(false));
+				}
 			}
 		});
 		

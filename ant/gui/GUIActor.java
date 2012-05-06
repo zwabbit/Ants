@@ -16,6 +16,8 @@ import akka.actor.UntypedActor;
 import ant.AntMove;
 import ant.GetPatchInfo;
 import ant.Patch;
+import ant.Pause;
+import ant.Play;
 import ant.World;
 
 public class GUIActor extends UntypedActor {
@@ -40,6 +42,14 @@ public class GUIActor extends UntypedActor {
 			/*for (ActorRef p: ((GUIUpdate)o).patches){
 				getPatchInfo(p);
 			}*/
+		}
+		if (o instanceof Pause){
+			world.tell(o);
+			return;
+		}
+		if(o instanceof Play){
+			world.tell(o);
+			return;
 		}
 		if (o instanceof GetPatchInfo){
 			if (gui == null){
