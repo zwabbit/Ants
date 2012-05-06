@@ -6,11 +6,12 @@ package ant;
 
 import akka.actor.ActorRef;
 import java.util.HashMap;
+import scala.concurrent.stm.TMap;
 
 /**
  *
  * @author Z98
  */
 public class GetAnts {
-    public HashMap<Integer, ActorRef> ants = null;
+    public TMap.View<Integer, ActorRef> ants;
 }

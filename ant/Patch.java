@@ -230,7 +230,7 @@ public class Patch extends UntypedActor {
 		if(o instanceof GetAnts)
 		{
 			GetAnts gAnts = (GetAnts)o;
-			gAnts.ants = antsCopy;
+			gAnts.ants = ants.clone();
 			getSender().tell(gAnts);
 			return;
 		}
