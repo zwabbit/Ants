@@ -22,10 +22,10 @@ import ant.World;
 
 public class GUIActor extends UntypedActor {
 	
-	GUIBackground gui;
-	GUIControls controls;
-	TreeSet<ActorRef> patches;
-	ActorRef world;
+	static GUIBackground gui;
+	static GUIControls controls;
+	static TreeSet<ActorRef> patches;
+	static ActorRef world;
 	@Override
 	public void onReceive(Object o) throws Exception {
 
@@ -34,6 +34,10 @@ public class GUIActor extends UntypedActor {
 			((ActorRef) o).tell("getDetails", getSelf());
 			return;
 		} 
+		if (o instanceof WaitForGUI){
+			world.tell(o);
+			return;
+		}
 		if (o instanceof GUIRequest){
 			makeGUI((GUIRequest)o);
 			return;
@@ -76,6 +80,12 @@ public class GUIActor extends UntypedActor {
 					}
 					else {
 						GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.LIGHT_GRAY);
+					}
+					
+					if(World.waitForGUI && ((GetPatchInfo)o).assocAnt != null){
+						Thread.sleep(10);
+						//System.out.println(getSender() + " done updating, telling ant to continue " + ((GetPatchInfo)o).assocAnt);
+						getSender().tell(new GUIWaitingMessage(true, ((GetPatchInfo)o).assocAnt));
 					}
 					return;
 				}

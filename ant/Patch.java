@@ -8,6 +8,7 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.transactor.Coordinated;
 import ant.gui.GUIUpdate;
+import ant.gui.GUIWaitingMessage;
 
 import java.awt.Point;
 import java.util.HashMap;
@@ -128,20 +129,26 @@ public class Patch extends UntypedActor {
 					if( food == null || ants == null){
 						//System.out.println(x + y + food.get() +  pher + ants.size());
 					}
-					world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())));
+					
+					if(!rly){
+						world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size(), ant)), getSelf());
+					}
+					else{
+						world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())), getSelf());
+					}
 					if(succ){
 						
 						if(!rly){
 							ant.tell(new Point(x,y));
 							//System.out.println("ant " + ant + " told to move");
-							if (World.keepGoing){
+							if (World.keepGoing && !World.waitForGUI){
 								ant.tell(new AntMove());
 							}
 						}
 					}
 					else{
 						if(!rly){
-							if (World.keepGoing){
+							if (World.keepGoing && !World.waitForGUI){
 								ant.tell(new AntMove());
 							}
 						}
@@ -183,6 +190,15 @@ public class Patch extends UntypedActor {
                         });
             }
 			 */
+		}
+		if(o instanceof GUIWaitingMessage){
+			GUIWaitingMessage msg = (GUIWaitingMessage)o;
+			//System.out.println("continuing");
+			if(msg.doContinue && World.keepGoing){
+				msg.ant.tell(new AntMove());
+				
+			}
+			return;
 		}
 		if(o instanceof Eat)
 		{

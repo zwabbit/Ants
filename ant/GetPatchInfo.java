@@ -12,6 +12,7 @@ public class GetPatchInfo {
 	public final Integer food;
 	public final float pher;
 	public final Integer ants;
+	public final ActorRef assocAnt;
 	
 	public GetPatchInfo(){
 		y=-1;
@@ -19,6 +20,7 @@ public class GetPatchInfo {
 		ants = null;
 		food=null;
 		pher=-1;
+		assocAnt = null;
 	}
 	
 	public GetPatchInfo(int xi, int yi, Integer food2, float p, Integer ants2){
@@ -27,5 +29,14 @@ public class GetPatchInfo {
 		food = food2;
 		pher = p;
 		ants = ants2;
+		assocAnt = null;
+	}
+	public GetPatchInfo(int xi, int yi, Integer food2, float p, Integer ants2, ActorRef ant){
+		x = xi;
+		y = yi;
+		food = food2;
+		pher = p;
+		ants = ants2;
+		assocAnt = ant;
 	}
 }

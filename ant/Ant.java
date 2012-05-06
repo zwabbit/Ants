@@ -120,7 +120,7 @@ public class Ant extends UntypedActor {
 							}
 							else{
 								//try{
-								World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+								World.patchMap.get(new Point(goX, goY)).tell(new Coordinated(ent, new Timeout(10000, TimeUnit.MICROSECONDS)), getSelf());
 								/*	loc = new Point(ent.endX, ent.endY);
 							}catch (Exception e) {
 								System.out.println(e);
@@ -200,7 +200,7 @@ public class Ant extends UntypedActor {
 								}
 								else{
 									//try{
-									World.patchMap.get(new Point(en.endX, en.endY)).tell(new Coordinated(en, new Timeout(1, TimeUnit.SECONDS)), getSelf());
+									World.patchMap.get(new Point(en.endX, en.endY)).tell(new Coordinated(en, new Timeout(10000, TimeUnit.MICROSECONDS)), getSelf());
 									/*loc = new Point(en.endX, en.endY);
 								}catch (Exception e) {
 									System.out.println(e);
@@ -219,7 +219,8 @@ public class Ant extends UntypedActor {
 				}
 			}
 			else{
-				
+				knownNeighbors = 0;
+				neighborhood.clear();
 			}
 			return;
 		}

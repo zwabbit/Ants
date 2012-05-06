@@ -3,21 +3,19 @@ package ant.gui;
 import javax.swing.*;
 
 import akka.actor.ActorRef;
-import ant.AntMove;
-import ant.GetPatchInfo;
-import ant.World;
 import ant.*;
 
 import java.awt.*;
 import java.awt.event.*;
 
-public class GUIControls extends JFrame{
+public class GUIControls extends JFrame implements ItemListener{
 
 	JButton playButton;
 	JButton pauseButton;
 	JButton updateButton;
 	JPanel panel;	
 	JButton stepButton;
+	JCheckBox waitForGui;
 	ActorRef actor;
 	//JButton resetButton;
 	
@@ -81,6 +79,10 @@ public class GUIControls extends JFrame{
 			}
 		});
 		
+		waitForGui = new JCheckBox("Wait for GUI?");
+		waitForGui.setSelected(false);
+		waitForGui.addItemListener(this);
+		waitForGui.setBounds(60, 100, 120, 30);
 		/*
 		resetButton = new JButton("Reset");
 		resetButton.setBounds(120, 40, 80, 30);
@@ -96,6 +98,7 @@ public class GUIControls extends JFrame{
 		panel.add(playButton);
 		panel.add(stepButton);
 		panel.add(updateButton);
+		panel.add(waitForGui);
 		
 		setTitle("Control Panel");
 		setSize(300,200);
@@ -116,5 +119,20 @@ public class GUIControls extends JFrame{
 			//}
 			
 		//}
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		// TODO Auto-generated method stub
+        Object source = e.getItemSelectable();
+ 
+        if (source == waitForGui) {
+        	if (e.getStateChange() == ItemEvent.DESELECTED) {
+        		actor.tell(new WaitForGUI(false));
+            }
+        	else{
+        		actor.tell(new WaitForGUI(true));
+        	}
+        }
 	}
 }

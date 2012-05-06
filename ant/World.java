@@ -10,6 +10,7 @@ import akka.transactor.Coordinated;
 import akka.util.Timeout;
 import ant.gui.GUIRequest;
 import ant.gui.GUIUpdate;
+import ant.gui.WaitForGUI;
 import ant.point.PointQuadTree;
 import akka.actor.Props;
 
@@ -37,6 +38,7 @@ public class World extends UntypedActor {
     public static HashMap<Point, ActorRef> patchMap = null;
     public static HashMap<ActorRef, Point> antMap = null;
     public static boolean keepGoing = true;
+    public static boolean waitForGUI = false;
     //public static HashMap<ActorRef, Enter> moveList = null;
     static ActorRef gui;
     
@@ -91,7 +93,7 @@ public class World extends UntypedActor {
         }
         
         //***change initial ants here
-        for(int i = 0;i<15;i++){
+        for(int i = 0;i<10;i++){
         	int antX = antRandom.nextInt(xDim);
         	int antY = antRandom.nextInt(yDim);
         	ActorRef newAnt = AntMain.system.actorOf(new Props(new UntypedActorFactory() {
@@ -117,6 +119,11 @@ public class World extends UntypedActor {
         if(o instanceof Tick)
         {
             foodPatches.clear();
+            return;
+        }
+        if(o instanceof WaitForGUI){
+        	waitForGUI = ((WaitForGUI)o).isWait;
+        	return;
         }
         if(o instanceof Pause){
     		keepGoing = false;
