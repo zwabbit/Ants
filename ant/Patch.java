@@ -45,7 +45,7 @@ public class Patch extends UntypedActor {
 	private Ref.View<Integer> food = STM.newRef(0);
 	float pher = 0;
 	boolean keepGoing = false;
-	ActorRef world;
+	ActorRef world = null;
 	/*
 	 * Pretty sure I just hosed myself due to the boxing/
 	 * unboxing that will take place with the key value.
@@ -69,6 +69,7 @@ public class Patch extends UntypedActor {
 
 	@Override
 	public void onReceive(Object o) throws Exception {
+            world = World.GetWorldActor();
 		if(o instanceof Coordinated)
 		{
 			Coordinated coordinated = (Coordinated)o;
