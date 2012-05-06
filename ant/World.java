@@ -44,6 +44,8 @@ public class World extends UntypedActor {
     TreeSet<String> patchRoutes;
     TreeSet<ActorRef> patches;
     
+    private static ActorRef worldRef = null;
+    
     public static Random foodRandom = null;
     public static Random antRandom = null;
     
@@ -107,6 +109,13 @@ public class World extends UntypedActor {
         
         //bRouter = getContext().actorOf(new Props(Patch.class).withRouter(BroadcastRouter.apply(patches)));
         bRouter = AntMain.system.actorOf(new Props(Patch.class).withRouter(BroadcastRouter.create(patches)));
+        
+        worldRef = this.getSelf();
+    }
+    
+    public static ActorRef GetWorldActor()
+    {
+        return worldRef;
     }
 
     @Override
