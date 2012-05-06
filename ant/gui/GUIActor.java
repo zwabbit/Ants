@@ -26,6 +26,7 @@ public class GUIActor extends UntypedActor {
 	static GUIControls controls;
 	static TreeSet<ActorRef> patches;
 	static ActorRef world;
+	public static int simSpeed = 1;
 	@Override
 	public void onReceive(Object o) throws Exception {
 
@@ -83,7 +84,7 @@ public class GUIActor extends UntypedActor {
 					}
 					
 					if(World.waitForGUI && ((GetPatchInfo)o).assocAnt != null){
-						Thread.sleep(10);
+						Thread.sleep(simSpeed);
 						//System.out.println(getSender() + " done updating, telling ant to continue " + ((GetPatchInfo)o).assocAnt);
 						getSender().tell(new GUIWaitingMessage(true, ((GetPatchInfo)o).assocAnt));
 					}

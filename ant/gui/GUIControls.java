@@ -1,6 +1,8 @@
 package ant.gui;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import akka.actor.ActorRef;
 import ant.*;
@@ -8,7 +10,7 @@ import ant.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class GUIControls extends JFrame implements ItemListener{
+public class GUIControls extends JFrame implements ItemListener, ChangeListener{
 
 	JButton playButton;
 	JButton pauseButton;
@@ -16,6 +18,7 @@ public class GUIControls extends JFrame implements ItemListener{
 	JPanel panel;	
 	JButton stepButton;
 	JCheckBox waitForGui;
+	JSlider speedSlider;
 	ActorRef actor;
 	//JButton resetButton;
 	
@@ -36,7 +39,7 @@ public class GUIControls extends JFrame implements ItemListener{
 	
 	private final void init(){
 		panel = new JPanel();
-		Dimension cpSize = new Dimension(200,200);
+		Dimension cpSize = new Dimension(300,300);
 		getContentPane().add(panel);
 		panel.setPreferredSize(cpSize);
 		panel.setLayout(null);		
@@ -83,6 +86,21 @@ public class GUIControls extends JFrame implements ItemListener{
 		waitForGui.setSelected(false);
 		waitForGui.addItemListener(this);
 		waitForGui.setBounds(60, 100, 120, 30);
+		
+		 //Create the slider.
+        speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 1);
+         
+ 
+        speedSlider.addChangeListener(this);
+ 
+        //Turn on labels at major tick marks.
+ 
+        speedSlider.setMajorTickSpacing(5);
+        speedSlider.setMinorTickSpacing(1);
+        speedSlider.setPaintTicks(true);
+        speedSlider.setPaintLabels(true);
+        speedSlider.setBounds(0, 160, 200, 45);
+        
 		/*
 		resetButton = new JButton("Reset");
 		resetButton.setBounds(120, 40, 80, 30);
@@ -99,6 +117,7 @@ public class GUIControls extends JFrame implements ItemListener{
 		panel.add(stepButton);
 		panel.add(updateButton);
 		panel.add(waitForGui);
+		panel.add(speedSlider);
 		
 		setTitle("Control Panel");
 		setSize(300,200);
@@ -134,5 +153,15 @@ public class GUIControls extends JFrame implements ItemListener{
         		actor.tell(new WaitForGUI(true));
         	}
         }
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		// TODO Auto-generated method stub
+		JSlider source = (JSlider)e.getSource();
+		if (!source.getValueIsAdjusting()) {
+			int speed = (int)source.getValue();
+			GUIActor.simSpeed = speed;
+		}
 	}
 }
