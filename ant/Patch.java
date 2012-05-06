@@ -69,7 +69,7 @@ public class Patch extends UntypedActor {
 
 	@Override
 	public void onReceive(Object o) throws Exception {
-            world = World.GetWorldActor();
+            world = AntMain.GetWorldRef();
 		if(o instanceof Coordinated)
 		{
 			Coordinated coordinated = (Coordinated)o;

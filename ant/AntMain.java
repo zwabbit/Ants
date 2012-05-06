@@ -30,12 +30,13 @@ public class AntMain {
      * @param args the command line arguments
      */
     static ActorSystem system = null;
+    static ActorRef world = null;
     
     public static void main(String[] args) {
         int temp;
         System.out.println("Test");
         system = ActorSystem.create();
-        ActorRef world = system.actorOf(new Props(new UntypedActorFactory() {
+        world = system.actorOf(new Props(new UntypedActorFactory() {
             public UntypedActor create()
             {
                 return new World(100,100);
@@ -51,5 +52,10 @@ public class AntMain {
         } catch (IOException ex) {
             Logger.getLogger(AntMain.class.getName()).log(Level.SEVERE, null, ex);
         }*/
+    }
+    
+    public static ActorRef GetWorldRef()
+    {
+        return world;
     }
 }

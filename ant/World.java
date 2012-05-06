@@ -109,14 +109,6 @@ public class World extends UntypedActor {
         
         //bRouter = getContext().actorOf(new Props(Patch.class).withRouter(BroadcastRouter.apply(patches)));
         bRouter = AntMain.system.actorOf(new Props(Patch.class).withRouter(BroadcastRouter.create(patches)));
-        
-        if(worldInstance == null)
-            worldInstance = this;
-    }
-    
-    public static ActorRef GetWorldActor()
-    {
-        return worldInstance.getSelf();
     }
 
     @Override
