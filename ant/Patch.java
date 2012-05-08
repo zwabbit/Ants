@@ -76,6 +76,30 @@ public class Patch extends UntypedActor {
 			Coordinated coordinated = (Coordinated)o;
 
 			Object message = coordinated.getMessage();
+			boolean ksucc = true;
+			
+			if(message instanceof KillAnt){
+				final int id = ((KillAnt) message).id;
+				try {
+					coordinated.atomic(new Runnable()
+					{
+						public void run()
+						{
+							ants.remove(id);
+						}
+					});
+				}
+				catch(Exception e){
+					ksucc = false;
+					throw e;
+				}
+				if(ksucc){
+					getContext().stop(((KillAnt) message).ref);
+				}
+				else{
+					
+				}			
+			}
 			if(message instanceof Enter)
 			{
 				Enter enter = (Enter)message;

@@ -42,6 +42,16 @@ public class Ant extends UntypedActor {
 			getSelf().tell(new AntMove());
 			return;
 		}
+		if(o instanceof String){
+			String msg = (String)o;
+			if(msg.equalsIgnoreCase("kill")){
+				KillAnt ka = new KillAnt();
+				ka.ref = getSelf();
+				ka.id = id;
+				World.patchMap.get(loc).tell(new Coordinated(ka, new Timeout(10000, TimeUnit.MICROSECONDS)), getSelf());
+			}
+			return;
+		}
 		if(o instanceof ActorRef){
 			world = (ActorRef)o;
 			return;

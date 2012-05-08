@@ -29,7 +29,7 @@ public class AntMain {
     /**
      * @param args the command line arguments
      */
-    static ActorSystem system = null;
+    public static ActorSystem system = null;
     static ActorRef world = null;
     
     public static void main(String[] args) {
