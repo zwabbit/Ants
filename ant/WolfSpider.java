@@ -19,6 +19,7 @@ public class WolfSpider extends UntypedActor {
     ActorRef currentPatch;
     
     int x, y;
+    int counter = 10;
 
     @Override
     public void onReceive(Object o) throws Exception {
@@ -31,9 +32,16 @@ public class WolfSpider extends UntypedActor {
         {
             GetAnts getAnts = (GetAnts)o;
             final TMap.View<Integer, ActorRef> ants = getAnts.ants;
-            Tuple2<Integer, ActorRef> ant = ants.head();
-            ant._2().tell("kill");
-            
+            if(ants.size() > 0)
+            {
+                Tuple2<Integer, ActorRef> ant = ants.head();
+                ant._2().tell("kill");
+            }
+            this.getSelf().tell(new AntMove());
+        }
+        if (o instanceof Point) {
+            Point loc = (Point) o;
+            //System.out.println("at " + o.toString());
         }
         //throw new UnsupportedOperationException("Not supported yet.");
     }
