@@ -73,8 +73,16 @@ public class WolfSpider extends UntypedActor {
             {
                 Tuple2<Integer, ActorRef> ant = ants.head();
                 ant._2().tell("kill");
+                counter = 10;
+                this.getSelf().tell(new AntMove());
             }
-            this.getSelf().tell(new AntMove());
+            else
+            {
+                if(counter ==0)
+                {
+                    
+                }
+            }
         }
         if (o instanceof Point) {
             Point loc = (Point) o;
