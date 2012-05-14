@@ -18,6 +18,7 @@ import ant.GetPatchInfo;
 import ant.Patch;
 import ant.Pause;
 import ant.Play;
+import ant.SpiderGUIUpdate;
 import ant.World;
 
 public class GUIActor extends UntypedActor {
@@ -54,6 +55,14 @@ public class GUIActor extends UntypedActor {
 		}
 		if(o instanceof Play){
 			world.tell(o);
+			return;
+		}
+		if (o instanceof SpiderGUIUpdate){
+			int py = ((SpiderGUIUpdate) o).loc.y;
+			int px = ((SpiderGUIUpdate) o).loc.x;
+			int i = py * gui.yD + px;
+			
+			GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.orange);
 			return;
 		}
 		if (o instanceof GetPatchInfo){

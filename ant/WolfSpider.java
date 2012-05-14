@@ -25,6 +25,7 @@ public class WolfSpider extends UntypedActor {
     
     int x, y;
     int counter = 10;
+    ActorRef worldActor;
     
     boolean stalking = false;
     EatAnt eatAnt;
@@ -40,6 +41,7 @@ public class WolfSpider extends UntypedActor {
 
     @Override
     public void onReceive(Object o) throws Exception {
+    	
         if(o instanceof AntMove)
         {
             if(stalking)
@@ -61,7 +63,8 @@ public class WolfSpider extends UntypedActor {
                     newY = y + yStep;
                     System.out.println("Stuck getting new Y");
                 }
-                
+                getSelf().tell(new Point(newX, newY));
+                /*
                 Enter enter = new Enter();
                 enter.startX = x;
                 enter.startY = y;
@@ -69,7 +72,16 @@ public class WolfSpider extends UntypedActor {
                 enter.endY = newY;
                 enter.ant = this.getSelf();
                 enter.isAnt = false;
-                currentPatch.tell(new Coordinated(enter, new Timeout(10000, TimeUnit.MICROSECONDS)), getSelf());
+                boolean succ = true;
+                try {
+                	currentPatch.tell(new Coordinated(enter, new Timeout(10000, TimeUnit.MICROSECONDS)), getSelf());	
+                }
+                catch(Exception e){
+                	succ = false;
+                	throw e;
+                }
+                if (succ)*/
+                	
             }
             else
             {
@@ -116,6 +128,13 @@ public class WolfSpider extends UntypedActor {
             currentPatch = World.patchMap.get(new Point(x,y));
             //System.out.println("at " + o.toString());
             this.getSelf().tell(eatAnt);
+            worldActor.tell(new SpiderGUIUpdate(new Point(x,y)));
+        }
+        if (o instanceof SpiderGUIUpdate){
+        	worldActor = getSender();
+        
+        	worldActor.tell(new SpiderGUIUpdate(new Point(x,y)));
+        	return;
         }
         //throw new UnsupportedOperationException("Not supported yet.");
     }

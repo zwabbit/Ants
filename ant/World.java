@@ -118,6 +118,7 @@ public class World extends UntypedActor {
         }
         
         ActorRef newSpider = AntMain.system.actorOf(new Props(WolfSpider.class));
+        newSpider.tell(new SpiderGUIUpdate(new Point(0,0)), getSelf());
         spiderList.add(newSpider);
         
         //bRouter = getContext().actorOf(new Props(Patch.class).withRouter(BroadcastRouter.apply(patches)));
@@ -141,6 +142,11 @@ public class World extends UntypedActor {
     	}
     	if(o instanceof Play){
     		keepGoing = true;
+    		return;
+    	}
+    	if(o instanceof SpiderGUIUpdate){
+    		
+    		gui.tell(o, getSender());
     		return;
     	}
         if(o instanceof String){
