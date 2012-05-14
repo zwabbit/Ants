@@ -15,4 +15,5 @@ public class Enter {
     public ActorRef ant;
     public int startX, startY, endX, endY;
     public boolean relayed = false;
+    public boolean isAnt = true;
 }

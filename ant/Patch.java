@@ -124,59 +124,54 @@ public class Patch extends UntypedActor {
 						}
 						otherPatch.tell(coordinated.coordinate(message));
 					}
-					final ActorRef ant = enter.ant;
-					try{
-						coordinated.atomic(new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								if(enterX == x && enterY == y)
-								{
-									ants.put(antID, ant);
-									//System.out.println(antID + " enter " + x + " " + y);
-									//System.out.println("ant " + ant + " added ");
-								}
-								if(leaveX == x && leaveY == y)
-								{
-									ants.remove(antID);
-									//System.out.println(antID + " leave " + x + " " + y);
-								}
-								
-							}
-						});
-					}
-					catch(Exception e){
-						succ = false;
-						//throw e;
-					}
-					if( food == null || ants == null){
-						//System.out.println(x + y + food.get() +  pher + ants.size());
-					}
-					
-					if(!rly){
-						world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size(), ant)), getSelf());
-					}
-					else{
-						world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())), getSelf());
-					}
-					if(succ){
-						
-						if(!rly){
-							ant.tell(new Point(x,y));
-							//System.out.println("ant " + ant + " told to move");
-							if (World.keepGoing && !World.waitForGUI){
-								ant.tell(new AntMove());
-							}
-						}
-					}
-					else{
-						if(!rly){
-							if (World.keepGoing && !World.waitForGUI){
-								ant.tell(new AntMove());
-							}
-						}
-					}
+                                        final ActorRef ant = enter.ant;
+                                    if (enter.isAnt) {
+                                        try {
+                                            coordinated.atomic(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (enterX == x && enterY == y) {
+                                                        ants.put(antID, ant);
+                                                        //System.out.println(antID + " enter " + x + " " + y);
+                                                        //System.out.println("ant " + ant + " added ");
+                                                    }
+                                                    if (leaveX == x && leaveY == y) {
+                                                        ants.remove(antID);
+                                                        //System.out.println(antID + " leave " + x + " " + y);
+                                                    }
+                                                }
+                                            });
+                                        } catch (Exception e) {
+                                            succ = false;
+                                            //throw e;
+                                        }
+
+                                        if (food == null || ants == null) {
+                                            //System.out.println(x + y + food.get() +  pher + ants.size());
+                                        }
+
+                                        if (!rly) {
+                                            world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size(), ant)), getSelf());
+                                        } else {
+                                            world.tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())), getSelf());
+                                        }
+                                    }
+                                    if (succ) {
+
+                                        if (!rly) {
+                                            ant.tell(new Point(x, y));
+                                            //System.out.println("ant " + ant + " told to move");
+                                            if (World.keepGoing && !World.waitForGUI && enter.isAnt) {
+                                                ant.tell(new AntMove());
+                                            }
+                                        }
+                                    } else {
+                                        if (!rly) {
+                                            if (World.keepGoing && !World.waitForGUI) {
+                                                ant.tell(new AntMove());
+                                            }
+                                        }
+                                    }
 				}
 				else{
 					

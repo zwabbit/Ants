@@ -20,10 +20,47 @@ public class WolfSpider extends UntypedActor {
     
     int x, y;
     int counter = 10;
+    
+    boolean stalking = false;
+    EatAnt eatAnt;
+    
+    public WolfSpider()
+    {
+        stalking = World.spiderRandom.nextBoolean();
+    }
 
     @Override
     public void onReceive(Object o) throws Exception {
         if(o instanceof AntMove)
+        {
+            if(stalking)
+            {
+                int newX = -1, newY = -1;
+                while(newX < 0 || newX >= World.xdim)
+                {
+                    int xStep = World.spiderRandom.nextInt(3);
+                    --xStep;
+                    newX = x + xStep;
+                }
+                
+                while(newY < 0 || newY >= World.ydim)
+                {
+                    int yStep = World.spiderRandom.nextInt(3);
+                    --yStep;
+                    newY = y + yStep;
+                }
+                
+                Enter enter = new Enter();
+                enter.startX = x;
+                enter.startY = y;
+                enter.endX = newX;
+                enter.endY = newY;
+                enter.ant = this.getSelf();
+                enter.isAnt = false;
+            }
+            this.getSelf().tell(eatAnt);
+        }
+        if(o instanceof EatAnt)
         {
             currentPatch = World.patchMap.get(new Point(x,y));
             currentPatch.tell(new GetAnts(), this.getSelf());
@@ -41,6 +78,9 @@ public class WolfSpider extends UntypedActor {
         }
         if (o instanceof Point) {
             Point loc = (Point) o;
+            x = loc.x;
+            y = loc.y;
+            currentPatch = World.patchMap.get(new Point(x,y));
             //System.out.println("at " + o.toString());
         }
         //throw new UnsupportedOperationException("Not supported yet.");

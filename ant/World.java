@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit;
  * @author Z98
  */
 public class World extends UntypedActor {
-    int xdim;
-    int ydim;
+    public static int xdim;
+    public static int ydim;
     
     public static PointQuadTree<ActorRef> foodPatches = null;
     public static HashMap<Point, ActorRef> patchMap = null;
@@ -51,6 +51,7 @@ public class World extends UntypedActor {
     
     public static Random foodRandom = null;
     public static Random antRandom = null;
+    public static Random spiderRandom = null;
     
     public World(int xDim, int yDim)
     {
@@ -64,8 +65,10 @@ public class World extends UntypedActor {
         	//moveList = new HashMap<>();
         if(antRandom == null)
             antRandom = new Random(System.currentTimeMillis());
-        xdim = xDim;
-        ydim = yDim;
+        if(spiderRandom == null)
+            spiderRandom = new Random(System.currentTimeMillis());
+        World.xdim = xDim;
+        World.ydim = yDim;
         if(foodPatches == null)
             foodPatches = new PointQuadTree<>(new Point(0,0), new Dimension(xdim, ydim));
         patches = new TreeSet<>();
