@@ -29,6 +29,7 @@ public class WolfSpider extends UntypedActor {
         stalking = World.spiderRandom.nextBoolean();
         x = World.spiderRandom.nextInt(World.xdim);
         y = World.spiderRandom.nextInt(World.ydim);
+        currentPatch = World.patchMap.get(new Point(x,y));
     }
 
     @Override
@@ -59,6 +60,10 @@ public class WolfSpider extends UntypedActor {
                 enter.endY = newY;
                 enter.ant = this.getSelf();
                 enter.isAnt = false;
+            }
+            else
+            {
+                currentPatch.tell(eatAnt);
             }
         }
         if(o instanceof EatAnt)
