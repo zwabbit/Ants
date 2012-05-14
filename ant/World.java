@@ -18,6 +18,7 @@ import java.awt.Point;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import scala.actors.threadpool.Arrays;
 import java.util.TreeSet;
@@ -37,6 +38,7 @@ public class World extends UntypedActor {
     public static PointQuadTree<ActorRef> foodPatches = null;
     public static HashMap<Point, ActorRef> patchMap = null;
     public static HashMap<ActorRef, Point> antMap = null;
+    public static List<ActorRef> spiderList = null;
     public static boolean keepGoing = true;
     public static boolean waitForGUI = false;
     //public static HashMap<ActorRef, Enter> moveList = null;
@@ -67,6 +69,8 @@ public class World extends UntypedActor {
             antRandom = new Random(System.currentTimeMillis());
         if(spiderRandom == null)
             spiderRandom = new Random(System.currentTimeMillis());
+        if(spiderList == null)
+        	spiderList = new ArrayList<ActorRef>();
         World.xdim = xDim;
         World.ydim = yDim;
         if(foodPatches == null)
@@ -112,6 +116,9 @@ public class World extends UntypedActor {
         	newAnt.tell(getSelf());
         	        	
         }
+        
+        ActorRef newSpider = AntMain.system.actorOf(new Props(WolfSpider.class));
+        spiderList.add(newSpider);
         
         //bRouter = getContext().actorOf(new Props(Patch.class).withRouter(BroadcastRouter.apply(patches)));
         bRouter = AntMain.system.actorOf(new Props(Patch.class).withRouter(BroadcastRouter.create(patches)));
