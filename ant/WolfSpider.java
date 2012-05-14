@@ -6,7 +6,12 @@ package ant;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
+import akka.transactor.Coordinated;
+import akka.util.Timeout;
+
 import java.awt.Point;
+import java.util.concurrent.TimeUnit;
+
 import scala.Tuple2;
 import scala.concurrent.stm.TMap;
 
@@ -30,6 +35,7 @@ public class WolfSpider extends UntypedActor {
         x = World.spiderRandom.nextInt(World.xdim);
         y = World.spiderRandom.nextInt(World.ydim);
         currentPatch = World.patchMap.get(new Point(x,y));
+        eatAnt = new EatAnt();
     }
 
     @Override
@@ -38,12 +44,14 @@ public class WolfSpider extends UntypedActor {
         {
             if(stalking)
             {
+            	System.out.println("stalk");
                 int newX = -1, newY = -1;
                 while(newX < 0 || newX >= World.xdim)
                 {
                     int xStep = World.spiderRandom.nextInt(3);
                     --xStep;
                     newX = x + xStep;
+                    System.out.println("Stuck getting new X");
                 }
                 
                 while(newY < 0 || newY >= World.ydim)
@@ -51,6 +59,7 @@ public class WolfSpider extends UntypedActor {
                     int yStep = World.spiderRandom.nextInt(3);
                     --yStep;
                     newY = y + yStep;
+                    System.out.println("Stuck getting new Y");
                 }
                 
                 Enter enter = new Enter();
@@ -60,10 +69,11 @@ public class WolfSpider extends UntypedActor {
                 enter.endY = newY;
                 enter.ant = this.getSelf();
                 enter.isAnt = false;
+                currentPatch.tell(new Coordinated(enter, new Timeout(10000, TimeUnit.MICROSECONDS)), getSelf());
             }
             else
             {
-                currentPatch.tell(eatAnt);
+                getSelf().tell(eatAnt);
             }
         }
         if(o instanceof EatAnt)
@@ -79,21 +89,23 @@ public class WolfSpider extends UntypedActor {
             {
                 Tuple2<Integer, ActorRef> ant = ants.head();
                 ant._2().tell("kill");
+                System.out.println("kill!");
                 counter = 10;
                 this.getSelf().tell(new AntMove());
                 stalking = false;
             }
             else
             {
+            	System.out.println("noants");
                 if(counter == 0)
                 {
+                	stalking = true;
                     this.getSelf().tell(new AntMove());
-                    stalking = true;
                 }
                 else
                 {
                     --counter;
-                    currentPatch.tell(new GetAnts(), this.getSelf());
+                    getSelf().tell(new EatAnt(), this.getSelf());
                 }
             }
         }
