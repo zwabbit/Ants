@@ -27,6 +27,8 @@ public class WolfSpider extends UntypedActor {
     public WolfSpider()
     {
         stalking = World.spiderRandom.nextBoolean();
+        x = World.spiderRandom.nextInt(World.xdim);
+        y = World.spiderRandom.nextInt(World.ydim);
     }
 
     @Override
@@ -78,9 +80,14 @@ public class WolfSpider extends UntypedActor {
             }
             else
             {
-                if(counter ==0)
+                if(counter == 0)
                 {
-                    
+                    this.getSelf().tell(new AntMove());
+                }
+                else
+                {
+                    --counter;
+                    currentPatch.tell(new GetAnts(), this.getSelf());
                 }
             }
         }
