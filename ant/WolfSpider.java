@@ -76,12 +76,14 @@ public class WolfSpider extends UntypedActor {
                 ant._2().tell("kill");
                 counter = 10;
                 this.getSelf().tell(new AntMove());
+                stalking = false;
             }
             else
             {
                 if(counter == 0)
                 {
                     this.getSelf().tell(new AntMove());
+                    stalking = true;
                 }
                 else
                 {
