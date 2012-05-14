@@ -60,7 +60,6 @@ public class WolfSpider extends UntypedActor {
                 enter.ant = this.getSelf();
                 enter.isAnt = false;
             }
-            this.getSelf().tell(eatAnt);
         }
         if(o instanceof EatAnt)
         {
@@ -97,6 +96,7 @@ public class WolfSpider extends UntypedActor {
             y = loc.y;
             currentPatch = World.patchMap.get(new Point(x,y));
             //System.out.println("at " + o.toString());
+            this.getSelf().tell(eatAnt);
         }
         //throw new UnsupportedOperationException("Not supported yet.");
     }

@@ -159,6 +159,9 @@ public class World extends UntypedActor {
         	for(ActorRef p:patchMap.values()){
     			p.tell(o, getSelf());
     		}
+        	for(ActorRef p:spiderList){
+        		p.tell(o, getSelf());
+        	}
         	return;
         }
         if(o instanceof ActorRef){
