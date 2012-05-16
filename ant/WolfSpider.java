@@ -63,7 +63,10 @@ public class WolfSpider extends UntypedActor {
                     newY = y + yStep;
                     System.out.println("Stuck getting new Y");
                 }
+                
+                currentPatch.tell(new GetPatchInfo(), worldActor);
                 getSelf().tell(new Point(newX, newY));
+                
                 /*
                 Enter enter = new Enter();
                 enter.startX = x;
