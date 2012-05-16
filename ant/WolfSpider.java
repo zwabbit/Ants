@@ -10,6 +10,7 @@ import akka.transactor.Coordinated;
 import akka.util.Timeout;
 
 import java.awt.Point;
+import scala.collection.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import scala.Tuple2;
@@ -29,6 +30,7 @@ public class WolfSpider extends UntypedActor {
     
     boolean stalking = false;
     EatAnt eatAnt;
+    ActorRef lastVictim = null;
     
     public WolfSpider()
     {
@@ -48,7 +50,7 @@ public class WolfSpider extends UntypedActor {
             {
             	System.out.println("stalk");
                 int newX = -1, newY = -1;
-                while(newX < 0 || newX >= World.xdim)
+                while(newX < 0 || newX >= World.xdim || newX == x)
                 {
                     int xStep = World.spiderRandom.nextInt(3);
                     --xStep;
@@ -56,7 +58,7 @@ public class WolfSpider extends UntypedActor {
                     System.out.println("Stuck getting new X");
                 }
                 
-                while(newY < 0 || newY >= World.ydim)
+                while(newY < 0 || newY >= World.ydim || newY == y)
                 {
                     int yStep = World.spiderRandom.nextInt(3);
                     --yStep;
@@ -102,12 +104,36 @@ public class WolfSpider extends UntypedActor {
             final TMap.View<Integer, ActorRef> ants = getAnts.ants;
             if(ants.size() > 0)
             {
-                Tuple2<Integer, ActorRef> ant = ants.head();
-                ant._2().tell("kill");
-                System.out.println("kill!");
-                counter = 10;
-                stalking = false;
-                this.getSelf().tell(eatAnt);
+                boolean ate = false;
+                Iterator<Tuple2<Integer, ActorRef>> antsItr = ants.iterator();
+                while(antsItr.hasNext())
+                {
+                    Tuple2<Integer, ActorRef> ant = antsItr.next();
+                    if(ant._2() != lastVictim)
+                    {
+                        ant._2().tell("kill");
+                        lastVictim = ant._2();
+                        ate = true;
+                        break;
+                    }
+                }
+                
+                if(ate)
+                {
+                    counter = 10;
+                    stalking = false;
+                    this.getSelf().tell(eatAnt);
+                }
+                else
+                {
+                    if (counter == 0) {
+                        stalking = true;
+                        this.getSelf().tell(new AntMove());
+                    } else {
+                        --counter;
+                        getSelf().tell(new EatAnt());
+                    }
+                }
             }
             else
             {
