@@ -106,8 +106,8 @@ public class WolfSpider extends UntypedActor {
                 ant._2().tell("kill");
                 System.out.println("kill!");
                 counter = 10;
-                this.getSelf().tell(new AntMove());
                 stalking = false;
+                this.getSelf().tell(eatAnt);
             }
             else
             {
@@ -120,7 +120,7 @@ public class WolfSpider extends UntypedActor {
                 else
                 {
                     --counter;
-                    getSelf().tell(new EatAnt(), this.getSelf());
+                    getSelf().tell(new EatAnt());
                 }
             }
         }
