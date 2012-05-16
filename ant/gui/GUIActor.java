@@ -61,8 +61,11 @@ public class GUIActor extends UntypedActor {
 			int py = ((SpiderGUIUpdate) o).loc.y;
 			int px = ((SpiderGUIUpdate) o).loc.x;
 			int i = py * gui.yD + px;
-			
-			GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.orange);
+			GUIBackground.colorPatch((JPanel)gui.gameBoard.getComponent(i), Color.black);
+			if(World.waitForGUI){
+				Thread.sleep(simSpeed);
+				World.spiderList.get(0).tell(new GUIWaitingMessage());
+			}
 			return;
 		}
 		if (o instanceof GetPatchInfo){

@@ -283,6 +283,10 @@ public class Patch extends UntypedActor {
 			}
 			return;
 		}
+		if(o instanceof GUIUpdate){
+			getSender().tell(new GUIUpdate(new GetPatchInfo(x, y, food.get(), pher, ants.size())), getSelf());
+			return;
+		}
 		if(o instanceof GetPatchInfo)
 		{
 			getSender().tell(new GetPatchInfo(x, y, food.get(), pher, ants.size()), getSelf());

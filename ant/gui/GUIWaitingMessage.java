@@ -9,4 +9,9 @@ public class GUIWaitingMessage {
 		ant = a;
 		doContinue = b;
 	}
+	public GUIWaitingMessage() {
+		// TODO Auto-generated constructor stub
+		ant = null;
+		doContinue = false;
+	}
 }

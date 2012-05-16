@@ -10,4 +10,8 @@ public class GUIUpdate {
 	public GUIUpdate(GetPatchInfo rq){
 		info = rq;
 	}
+	public GUIUpdate() {
+		// TODO Auto-generated constructor stub
+		info = null;
+	}
 }

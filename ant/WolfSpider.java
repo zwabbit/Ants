@@ -8,6 +8,8 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.transactor.Coordinated;
 import akka.util.Timeout;
+import ant.gui.GUIUpdate;
+import ant.gui.GUIWaitingMessage;
 
 import java.awt.Point;
 import scala.collection.Iterator;
@@ -29,6 +31,7 @@ public class WolfSpider extends UntypedActor {
     ActorRef worldActor;
     
     boolean stalking = false;
+    boolean isWaiting = false;
     EatAnt eatAnt;
     ActorRef lastVictim = null;
     
@@ -44,6 +47,12 @@ public class WolfSpider extends UntypedActor {
     @Override
     public void onReceive(Object o) throws Exception {
     	
+    	if(o instanceof GUIWaitingMessage)
+    	{
+    		System.out.println("going");
+    		isWaiting = false;
+    		getSelf().tell(new AntMove());
+    	}
         if(o instanceof AntMove)
         {
             if(stalking)
@@ -66,7 +75,7 @@ public class WolfSpider extends UntypedActor {
                     System.out.println("Stuck getting new Y");
                 }
                 
-                currentPatch.tell(new GetPatchInfo(), worldActor);
+                currentPatch.tell(new GUIUpdate(), worldActor);
                 getSelf().tell(new Point(newX, newY));
                 
                 /*
@@ -92,6 +101,7 @@ public class WolfSpider extends UntypedActor {
             {
                 getSelf().tell(eatAnt);
             }
+            
         }
         if(o instanceof EatAnt)
         {
@@ -128,12 +138,21 @@ public class WolfSpider extends UntypedActor {
                 {
                     if (counter == 0) {
                         stalking = true;
-                        this.getSelf().tell(new AntMove());
+                        if(!World.waitForGUI)
+                        {
+                        	
+                        	this.getSelf().tell(new AntMove());
+                        }
+                        else {
+                        	isWaiting = true;
+                  
+                        }
                     } else {
                         --counter;
                         getSelf().tell(new EatAnt());
                     }
                 }
+                
             }
             else
             {
@@ -141,7 +160,12 @@ public class WolfSpider extends UntypedActor {
                 if(counter == 0)
                 {
                 	stalking = true;
-                    this.getSelf().tell(new AntMove());
+                	if (!World.waitForGUI){
+                		this.getSelf().tell(new AntMove());
+                	}
+                	else {
+                		isWaiting = true;
+                	}
                 }
                 else
                 {
@@ -149,19 +173,19 @@ public class WolfSpider extends UntypedActor {
                     getSelf().tell(new EatAnt());
                 }
             }
+            worldActor.tell(new SpiderGUIUpdate(new Point(x,y)));
         }
         if (o instanceof Point) {
             Point loc = (Point) o;
             x = loc.x;
             y = loc.y;
             currentPatch = World.patchMap.get(new Point(x,y));
-            //System.out.println("at " + o.toString());
+            System.out.println("at " + o.toString());
             this.getSelf().tell(eatAnt);
             worldActor.tell(new SpiderGUIUpdate(new Point(x,y)));
         }
         if (o instanceof SpiderGUIUpdate){
         	worldActor = getSender();
-        
         	worldActor.tell(new SpiderGUIUpdate(new Point(x,y)));
         	return;
         }
